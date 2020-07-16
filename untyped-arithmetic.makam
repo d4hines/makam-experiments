@@ -1,0 +1,25 @@
+term : type.
+
+zero : term.
+succ : (T : term) -> term.
+prede : (T : term) -> term.
+iszero : (T : term) -> term.
+
+% Values are a subset of terms.
+v : (T : term) -> prop.
+% Numeric values are a subset of values.
+nv : (T : term) -> prop.
+
+
+% Evaluation judgements (small step semantics)
+eval : (T : term) (T' : term) -> prop.
+
+% t1 -> t1'
+% ----------
+% succ t1 -> succ t1'
+eval (succ T) (succ T') :- eval T T'.
+
+% pred 0 -> 0.
+eval (prede zero) zero.
+
+% pred (succ nv1) -> 
