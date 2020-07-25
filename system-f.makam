@@ -1,12 +1,14 @@
 term : type.
-typ : type.
-
-tbool : typ.
-
-app : term -> term -> term.
-arrow : typ -> typ -> typ.
 
 lam : typ -> (term -> term) -> term.
+app : term -> term -> term.
+
+typ : type.
+arrow : typ -> typ -> typ.
+
+typeabs : (typ -> term) -> term.
+typeapp : term -> typ -> term.
+pi : (typ -> typ) -> typ.
 
 typeof : term -> typ -> prop.
 
@@ -15,12 +17,12 @@ typeof (app E1 E2) T' :- typeof E1 (arrow T T'), typeof E2 T.
 typeof (lam T1 E) (arrow T1 T2) :-
     (x:term -> typeof x T1 -> typeof (E x) T2).
 
+typeof (typeabs EF) (pi TF) :-
+    (x : typ -> typeof (EF x) (TF x)).
+
 eval : term -> term -> prop.
 eval (lam T F) (lam T F).
 eval (app E E') V'' :- eval E (lam _ F), eval E' V', eval (F V') V''.
-
-
-
 
 %  typeof (lam _ (fun x => x)) T ?
 %  >> Yes:

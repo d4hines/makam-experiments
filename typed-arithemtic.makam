@@ -1,0 +1,35 @@
+term : type.
+ttrue : term.
+tfalse : term.
+tif : term -> term -> term -> term.
+
+zero : term.
+succ : term -> term.
+prede : term -> term.
+iszero : term -> term.
+
+typ : type.
+tbool : typ.
+tnat : typ.
+
+typeof : term -> type -> prop.
+
+typeof ttrue tbool.
+typeof tfalse tbool.
+typeof (tif T1 T2 T3) T :- typeof T1 tbool,
+    typeof T2 T,
+    typeof T3 T.
+
+
+% Values are a subset of terms.
+v : (T : term) -> prop.
+% Numeric values are a subset of values.
+nv : (T : term) -> prop.
+
+
+v ttrue.
+v tfalse.
+v T :- nv T.
+
+nv zero.
+nv (succ NV) :- nv NV.
