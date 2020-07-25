@@ -40,7 +40,8 @@ typeof (lam A N) (forall A B) :-
 
 % 4. (Part 2)
 typeof typeof (forall A B) K :-
-    (x:term -> typeof x A -> typeof A K -> k K -> typeof (N x) B -> typeof (lam A N) (forall A B)).
+    typeof x A, typeof A K', typeof B K'',
+    k K, k K', k K''.
 
 % 5.
 typeof (app M N) T :-
