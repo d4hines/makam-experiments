@@ -1,0 +1,58 @@
+% The object level language has a sort called terms.
+term : type.
+% T is a term (also called Type)
+t : term.
+% P is a term (also called Prop, the type of all propositions)
+p : term.
+
+% Application
+app : term -> term -> term.
+
+% Lambda Abstraction
+lam : term -> (term -> term) -> term.
+% For-All Abstrcation
+forall : term -> (term -> term) -> term.
+
+% Object-level type.
+typeof : term -> term -> prop.
+
+% Fully Beta-reduced Object-level type.
+rtypeof : term -> term -> prop.
+
+% K means either t or p.
+k : term -> prop.
+k t.
+k p.
+
+% Inference Rules: https://en.wikipedia.org/wiki/Calculus_of_constructions#Inference_rules_for_the_Calculus_of_Constructions
+% 1.
+typeof p t.
+
+% 2. Subsumed by HOAS
+
+% 3.
+typeof (forall A B) L :-
+    (x:term -> typeof x A -> typeof A K -> k K -> typeof (B x) L).
+
+% 4. (Part 1)
+typeof (lam A N) (forall A B) :-
+    (x:term -> typeof x A -> typeof A K -> k K -> typeof (N x) B).
+
+% 4. (Part 2)
+typeof typeof (forall A B) K :-
+    (x:term -> typeof x A -> typeof A K -> k K -> typeof (N x) B -> typeof (lam A N) (forall A B)).
+
+% 5.
+typeof (app M N) T :-
+    typeof N A, typeof M (forall A B), typeof (B N) T.
+
+% 6.
+rtypeof M B :-
+    typeof M A, eval A B, typeof B K, k K.
+
+% Evaluation rules.
+eval : term -> term -> prop.
+eval (lam T F) (lam T F).
+eval (forall T F) (forall T F).
+eval (app E E') V'' :- eval E (lam _ F), eval E' V', eval (F V') V''.
+eval (app E E') V'' :- eval E (forall _ F), eval E' V', eval (F V') V''.
