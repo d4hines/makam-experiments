@@ -62,6 +62,11 @@ tests : testsuite. %testsuite tests.
 >> E := lam tint (fun x => x),
 >> T := arrow tint tint.
 
+(isocast {{ λf: int -> int.λx: int.f x }} (_E: term), typeof _E _T, isocast _T (X: string)) ?
+>> Yes:
+>> X := "( int -> int ) -> int -> int ".
+
+
 isocast (arrow tint tint) (X: string) ?
 >> Yes:
 >> X := "int -> int ".
