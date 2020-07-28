@@ -20,8 +20,8 @@ eval (lam T F) (lam T F).
 eval (app E E') V'' :- eval E (lam _ F), eval E' V', eval (F V') V''.
 
 %open syntax.
-styp : syntax typ.
-sterm : syntax term.
+styp, styp_base : syntax typ.
+sterm, sterm_base : syntax term.
 sterm_concrete : syntax (concrete term).
 
 termvars: concrete.namespace term.
@@ -29,26 +29,42 @@ concrete.pick_namespace_userdef (_: term) termvars.
 
 tint : typ.
 
-`( syntax_rules {{
-
-styp -> arrow { <styp> "->" <styp> }
-     / tint { "int" }
-
 % longform syntax is here:
 %  fun t1 => fun t2 => app t1 t2 { "@" <sterm> <sterm> }
 
-sterm -> app { "@" <sterm> <sterm> }
-       / fun x => concrete.var (concrete.name termvars x) { <makam.ident> }
+`( syntax_rules {{
+
+styp -> arrow { <styp_base> "->" <styp> }
+      / { <styp_base> }
+
+styp_base -> tint { "int" }
+      / { "(" <styp> ")" }
+
+sterm -> app { <sterm_base> <sterm> }
+       / { <sterm_base> }
+
+sterm_base ->
+         fun x => concrete.var (concrete.name termvars x) { <makam.ident> }
        / fun id => fun tp => fun tm => lam tp (concrete.lambda (concrete.name termvars id) tm) { "λ" <makam.ident> ":" <styp> "." <sterm> }
+       / { "(" <sterm> ")" }
 
 sterm_concrete -> concrete { <sterm> }
 
 }} ).
 
 `( syntax.def_toplevel_js sterm_concrete ).
+`( syntax.def_toplevel_js styp ).
 
-isocast {{ λx: int.x }} (T: term) ?
+tests : testsuite. %testsuite tests.
 
+(isocast {{ λx: int.x }} (E: term), typeof E T) ?
+>> Yes:
+>> E := lam tint (fun x => x),
+>> T := arrow tint tint.
+
+isocast (arrow tint tint) (X: string) ?
+>> Yes:
+>> X := "int -> int ".
 
 %  typeof (lam _ (fun x => x)) T ?
 %  >> Yes:
