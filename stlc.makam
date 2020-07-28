@@ -19,7 +19,35 @@ eval : term -> term -> prop.
 eval (lam T F) (lam T F).
 eval (app E E') V'' :- eval E (lam _ F), eval E' V', eval (F V') V''.
 
+%open syntax.
+styp : syntax typ.
+sterm : syntax term.
+sterm_concrete : syntax (concrete term).
 
+termvars: concrete.namespace term.
+concrete.pick_namespace_userdef (_: term) termvars.
+
+tint : typ.
+
+`( syntax_rules {{
+
+styp -> arrow { <styp> "->" <styp> }
+     / tint { "int" }
+
+% longform syntax is here:
+%  fun t1 => fun t2 => app t1 t2 { "@" <sterm> <sterm> }
+
+sterm -> app { "@" <sterm> <sterm> }
+       / fun x => concrete.var (concrete.name termvars x) { <makam.ident> }
+       / fun id => fun tp => fun tm => lam tp (concrete.lambda (concrete.name termvars id) tm) { "λ" <makam.ident> ":" <styp> "." <sterm> }
+
+sterm_concrete -> concrete { <sterm> }
+
+}} ).
+
+`( syntax.def_toplevel_js sterm_concrete ).
+
+isocast {{ λx: int.x }} (T: term) ?
 
 
 %  typeof (lam _ (fun x => x)) T ?

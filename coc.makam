@@ -16,9 +16,6 @@ forall : term -> (term -> term) -> term.
 % Object-level type.
 typeof : term -> term -> prop.
 
-% Fully Beta-reduced Object-level type.
-rtypeof : term -> term -> prop.
-
 % K means either t or p.
 k : term -> prop.
 k t.
@@ -28,27 +25,54 @@ k p.
 % 1.
 typeof p t.
 
+typeof_is_k A K :- typeof A K, k K.
+
 % 2. Subsumed by HOAS
 
 % 3.
 typeof (forall A B) L :-
-    (x:term -> typeof x A -> typeof A K -> k K -> typeof (B x) L).
+    typeof_is_k A K,
+    (x:term -> typeof x A -> typeof_is_k (B x) L).
 
 % 4.
 typeof (lam A N) (forall A B) :-
-    (x:term -> typeof x A -> typeof A K -> k K -> typeof (N x) B).
+    typeof_is_k A K,
+    (x:term -> typeof x A -> typeof (N x) B).
 
 % 5.
 typeof (app M N) T :-
     typeof N A, typeof M (forall A B), typeof (B N) T.
 
 % 6.
-rtypeof M B :-
+typeof M B :-
+    not(refl.isunif B),
     typeof M A, eval A B, typeof B K, k K.
+
+% forall a => (a + (1 + 1)) = a + 2
+% ==
+% forall a => a + 2 = a + 2
+
+% zero : nat
+% succ : nat -> nat
+
+% natind : forall t : nat -> Type. t 0 => (forall n: nat, t n => t (succ n)) => forall n: nat, t n.
+% forall a : P. a => (a => a) => a
+
+
+%  equal : T => T => P
+%  reflexivity : forall A: T, forall x: A, x = x
+%  leibniz : forall A: T, forall x: A, forall y: A, forall pf: x = y, forall pred: A -> P, pred x -> pred y
+equal : term.
+typeof equal T :- eq T (forall t (fun a => forall t (fun b => p))), typeof_is_k T K.
+reflexivity : term.
+typeof reflexivity T :- eq T (forall t (fun a => forall a (fun x => app (app equal x) x))), typeof_is_k T K.
+
+
+% 1 + 1 = 2
+% reflexivity (1+1) 2 : 1 + 1 = 2
 
 % Evaluation rules.
 eval : term -> term -> prop.
-eval (lam T F) (lam T F).
-eval (forall T F) (forall T F).
+eval (lam T F) (lam T F') :- (x:term -> eval x x -> eval (F x) (F x')).
+eval (forall T F) (forall T F') :- (x:term -> eval x x -> eval (F x) (F' x)).
 eval (app E E') V'' :- eval E (lam _ F), eval E' V', eval (F V') V''.
-eval (app E E') V'' :- eval E (forall _ F), eval E' V', eval (F V') V''.
